@@ -41,6 +41,7 @@ bitmask1 = {3:'timestamp',
 
 BM1 = list(bitmask1)
 BM1.sort()
+print e_head
 print('%% BITMASK1 %%')
 for i in BM1:
     if i <=18:
