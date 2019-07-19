@@ -89,10 +89,17 @@ def get_paths():
     return(ctffile,rawpath)
 
 def trace_to_GS(rawpath):
-    '''map all the grid squares assign micrograpsh to grid square '''
+    '''map all the grid squares assign micrographs to grid square '''
     mic2GS = {}
     GS2mics = {}
+
     for GS in glob.glob('{0}/Grid*'.format(rawpath)):
+        n=0
+        bincount = 0
+        bins = [0,.25,.5,.75,1.0,2.0]
+        sys.stdout.write('\nindexing {0}'.format(GS))
+        sys.stdout.flush()
+        count = len(glob.glob('{1}/Data/*.mrc'.format(rawpath,GS)))
         for mic in glob.glob('{1}/Data/*.mrc'.format(rawpath,GS)):
             if '_Fractions'not in mic:
                 mic2GS[mic.split('/')[-1]] = GS.split('/')[-1]
@@ -100,6 +107,11 @@ def trace_to_GS(rawpath):
                     GS2mics[GS.split('/')[-1]].append(mic.split('/')[-1])
                 except:
                     GS2mics[GS.split('/')[-1]] = [mic.split('/')[-1]]
+            while float(n)/count > bins[bincount]:
+                sys.stdout.write('.')
+                sys.stdout.flush()
+                bincount+=1
+            n+=1
     return(mic2GS,GS2mics)
 
 def parse_starfile_ctf(starfile):
@@ -136,10 +148,10 @@ def DA_to_SQ(dax,day,sqx,sqy,sqapix):
     '''transform a DA scale image center to a GS image scale '''
     newx = dax-sqx
     newy = day-sqy
-    print(2048+(newx/sqapix),2048-(newy/sqapix))
+    #print(2048+(newx/sqapix),2048-(newy/sqapix))
     return(2048+(newx/sqapix),2048-(newy/sqapix)) 
   
-#get the data files ans trace mic to grid squares
+#get the data files and trace mic to grid squares
 ctffile,rawpath = get_paths()
 ctfmicsdic = (parse_starfile_ctf(ctffile))      # {micname_Fractions:[defocus,ctfFOM]}
 GSdic,micsGSdic = trace_to_GS(rawpath)          # {micname:gridsquare}, {gridsquare: [mics,mics,...,mics]}
@@ -148,17 +160,22 @@ GSdic,micsGSdic = trace_to_GS(rawpath)          # {micname:gridsquare}, {gridsqu
 heights,scopeDFS,gctfDFS,diffs,FOMs = [],[],[],[],[]
 
 #update the dics wiith more info final output = {micname_Fractions:[defocus,ctfFOM,height,appDF,diff,centerx,centery]}
+n=0
+bincount = 0
+bins = [0.0,0.25,0.5,0.75,1.0,2.0]
+sys.stdout.write('\nreading micrographs')
+sys.stdout.flush()
 for i in ctfmicsdic:
     try:
-        print(i,GSdic[i.replace('_Fractions','')])
+        #print(i,GSdic[i.replace('_Fractions','')])
         filepath = '{0}{1}/Data/{2}'.format(rawpath,GSdic[i.replace('_Fractions','')],i.replace('_Fractions',''))
-        print(filepath)
+        #print(filepath)
         DF,appDF,micx,micy,timestamp = (get_scope_DFS(filepath))
         DF = float(DF)*1000000
         appDF = float(appDF)*1000000
         gctfDF = float(ctfmicsdic[i][0])
         ctfFOM = ctfmicsdic[i][1]
-        print(DF,appDF,gctfDF,appDF-gctfDF,ctfFOM)
+        #print(DF,appDF,gctfDF,appDF-gctfDF,ctfFOM)
         scopeDFS.append(appDF)
         gctfDFS.append(gctfDF)
         diffs.append(appDF-gctfDF)
@@ -172,6 +189,11 @@ for i in ctfmicsdic:
         ctfmicsdic[i].append(timestamp)
     except:
         pass
+    while float(n)/len(ctfmicsdic) > bins[bincount]:
+        sys.stdout.write('.')
+        sys.stdout.flush()
+        bincount+=1
+    n+=1
 
 ##general defocus graphs
 ## not especially informative 
@@ -198,7 +220,7 @@ def map_to_GS(GSname,GS_infodic,mic_infodic,rawpath,item_number,label,colmap,nor
             days.append(newpoint[1])   
             vals.append(mic_infodic[newfilename][item_number])
          except:
-            print('image {0} not found in micrographs ctf star file -- SKIPPING'.format(i.replace('.','_Fractions.')))
+            pass
     if normpoint == 'auto':
         normpoint = sum(vals)/len(vals)
     if valmin == 'auto':
