@@ -174,23 +174,14 @@ for i in ctfmicsdic:
         pass
 
 ##general defocus graphs
-plt.scatter(diffs,FOMs,c=gctfDFS,cmap='seismic')
-plt.ylabel('FOM')
-plt.xlabel('DF difference')
-plt.vlines([-1,1],min(FOMs),max(FOMs),linestyles=':',colors='grey')
-plt.colorbar()
-plt.show()
-plt.close()
-
-plt.scatter(heights,diffs,c=gctfDFS,cmap='autumn')
-plt.xlabel('height')
-plt.ylabel('DF difference')
-plt.hlines(-1,min(heights),max(heights),linestyles=':',colors='grey')
-plt.hlines(1,min(heights),max(heights),linestyles=':',colors='grey')
-
-plt.colorbar()
-plt.show()
-plt.close()
+## not especially informative 
+#plt.scatter(diffs,FOMs,c=gctfDFS,cmap='seismic')
+#plt.ylabel('FOM')
+#plt.xlabel('DF difference')
+#plt.vlines([-1,1],min(FOMs),max(FOMs),linestyles=':',colors='grey')
+#plt.colorbar()
+#plt.show()
+#plt.close()
 #map info to gridsquare_images 
 
 def map_to_GS(GSname,GS_infodic,mic_infodic,rawpath,item_number,label,colmap,normpoint,valmin,valmax):   # NO SPACES IN LABEL NAME!!!
@@ -198,15 +189,16 @@ def map_to_GS(GSname,GS_infodic,mic_infodic,rawpath,item_number,label,colmap,nor
     SQ_x,SQ_y,SQ_z,SQ_apix= make_bg(GSmic)
 
     daxs,days,vals = [],[],[]
-    print(mic_infodic)
-    #make lists
     for i in GS_infodic[GSname]:
-        newfilename = i.replace('.','_Fractions.')
-        print(i,mic_infodic[newfilename])
-        newpoint = DA_to_SQ(mic_infodic[newfilename][5],mic_infodic[newfilename][6],SQ_x,SQ_y,SQ_apix)
-        daxs.append(newpoint[0])
-        days.append(newpoint[1])   
-        vals.append(mic_infodic[newfilename][item_number])
+         try:
+            newfilename = i.replace('.','_Fractions.')
+            #print(i,mic_infodic[newfilename])
+            newpoint = DA_to_SQ(mic_infodic[newfilename][5],mic_infodic[newfilename][6],SQ_x,SQ_y,SQ_apix)
+            daxs.append(newpoint[0])
+            days.append(newpoint[1])   
+            vals.append(mic_infodic[newfilename][item_number])
+         except:
+            print('image {0} not found in micrographs ctf star file -- SKIPPING'.format(i.replace('.','_Fractions.')))
     if normpoint == 'auto':
         normpoint = sum(vals)/len(vals)
     if valmin == 'auto':
@@ -240,7 +232,7 @@ class MidpointNormalize(colors.Normalize):
 
 for GS in micsGSdic:
     map_to_GS(GS,micsGSdic,ctfmicsdic,rawpath,4,'defocus_difference','seismic',0.0,'auto','auto')
-    map_to_GS(GS,micsGSdic,ctfmicsdic,rawpath,2,'height','PuOr',0.0,'auto','auto')
+    map_to_GS(GS,micsGSdic,ctfmicsdic,rawpath,2,'defocus','PuOr',0.0,'auto','auto')
     map_to_GS(GS,micsGSdic,ctfmicsdic,rawpath,7,'order_of_aquisition','gist_rainbow','auto','auto','auto')
     vmin,vmax = map_to_GS(GS,micsGSdic,ctfmicsdic,rawpath,0,'gctf_defocus','tab20b','auto','auto','auto')
     map_to_GS(GS,micsGSdic,ctfmicsdic,rawpath,3,'requested_defocus','tab20b','auto',vmin,vmax)
