@@ -118,20 +118,20 @@ def parse_result(resultdic,micsdic):
         for j in resultdic[i]:
             if [i,j] not in found:
                 hit = True
-                hits[n].append([j,micsdic[j][3]])
+                hits[n].append([j,micsdic[j][3],(micsdic[j][0],micsdic[j][1])])
                 found.append([j,i])
             for k in resultdic[i]:
                 found.append([k,j])
                 found.append([j,k])
             if hit == True and done == False:
-                hits[n].append([i,micsdic[i][3]])
+                hits[n].append([i,micsdic[i][3],(micsdic[i][0],micsdic[i][1])])
                 done = True
         n+=1
     for i in hits:
         if len(i) > 0:
             i.sort(key=lambda x: x[1])
             for j in i:
-                print(j[0],j[1])
+                print(j[0],j[1],j[2])
             print('')
             
 #get the data files ans trace mic to grid squares
