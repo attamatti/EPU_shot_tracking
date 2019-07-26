@@ -310,6 +310,7 @@ for i in selected:
     plt.savefig('{0}_shots.png'.format(GS_name),dpi=400)
     plt.close()
 
+
 ###########################################################################
 ### now redo it all with the right filename
 ## make a dict with the correct DA image names
@@ -321,6 +322,7 @@ for i in selected:
     ## make a dict to translate the DA images to teh correct name
     # first do the DA images
     GS_name = i.split('/')[-1].split('.')[0]
+    imagepath = '{0}/{1}/'.format(images,GS_name)
     DAimglist = []
     allDAimages= glob.glob('{0}Data/*.xml'.format(imagepath,GS_name))
     for f in allDAimages:
@@ -346,8 +348,20 @@ for i in selected:
 
     ##### make a dict of all the requested aquisitions on this gridsquare
     ## initilize the next plot
+    print('----------')
+    print(GS_name)
+    print('gridsquare metadata: {0}'.format(i))
+    print('gridsquare images  : {0}'.format(imagepath))
+    GS_images = glob.glob('{0}/*.mrc'.format(imagepath))
+    GS_images.sort()
+    GS_image = GS_images[-1]
+    print('{0} gridsquare images found :: using {1}'.format(len(GS_images),GS_image.split('/')[-1]))
     sq_cent_x,sq_cent_y,sq_z,sq_apix = make_bg(GS_image)
-
+    
+    ###### make a new targets dict
+    
+    
+    #############
     
     ## get the foilhole metadata files:
     print('FoilHoles metadata: {0}/FoilHoles/*.xml'.format(imagepath,GS_name))
@@ -383,9 +397,9 @@ for i in selected:
                     foilholes[id].append([f])
             else:
                 print('skipped {0}'.format(id))
-    for i in foilholes:
-       if len(foilholes[i]) != 3:
-            foilholes[i].append(['NONE'])
+    for ifh in foilholes:
+       if len(foilholes[ifh]) != 3:
+            foilholes[ifh].append(['NONE'])
     
     ## output all of the Foilhole info
     #put the foilholes in order of aquisition
