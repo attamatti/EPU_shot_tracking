@@ -359,7 +359,53 @@ for i in selected:
     sq_cent_x,sq_cent_y,sq_z,sq_apix = make_bg(GS_image)
     
     ###### make a new targets dict
+    tmd_dir = '{0}/{1}'.format(metadata,GS_name)
+    target_metadata = get_files(tmd_dir,'*.dm')
+    targetsx,targetsy,targetsorder = [],[],[]
+    targets_dic = {}            #{targetID:[order,stageX,stageY,stageZ,drawX,drawY,scaledstagex,scaledstagey] last two added later}
     
+    # get coords of targets from metadata
+    for target in target_metadata:
+        targetID,order,stageX,stageY,stageZ,drawX,drawY = parse_xml_target(target)    
+        targetsx.append(float(drawX))
+        targetsy.append(float(drawY))
+        targetsorder.append(order)
+        # somtimes target ID is used sometime the name of the metadata file WTF!!
+        targets_dic[targetID] = [order,stageX,stageY,stageZ,drawX,drawY]
+        targets_dic[target.split('/')[-1].split('_')[1].replace('.dm','')] = [order,stageX,stageY,stageZ,drawX,drawY]
+    for n in range(len(targetsx)):
+        plt.text(targetsx[n],targetsy[n],targetsorder[n],size=3)
+    
+
+    # map out the stage positions for the targets using the mrc headers for the actual images
+    gsx,gsy = (float(GS_dic[i][2]),float(GS_dic[i][3]))
+    print('gridsquare centre check \nmetadata:\t{0:.7f}\t{1:.7f}\nmrc header:\t{2:.7f}\t{3:.7f}'.format(gsx*1000,gsy*1000,sq_cent_x*1000,sq_cent_y*1000))
+    
+    targetstagex,targetstagey = [],[]
+    GS_centerdata='no aqusitions this square'
+
+    for target in target_metadata:
+        targetID,order,stageX,stageY,stageZ,drawX,drawY = parse_xml_target(target)    
+        
+        ### GS metadata and image extended header have different values for center... assuming because actual image has been centerd 
+        ## picking one for now...
+        ## from metadata
+
+        #scaled = DA_to_SQ(float(stageX),float(stageY),gsx,gsy,sq_apix)
+        #GS_centerdata = 'GridSquare metadata'
+        
+        ## from actual image header ... 
+        scaled = DA_to_SQ(float(stageX),float(stageY),sq_cent_x,sq_cent_y,sq_apix)
+        GS_centerdata = 'GridSquare image header'
+        
+        #add the target stage locations to target_dic
+        targets_dic[target.split('/')[-1].split('_')[1].replace('.dm','')].append(scaled[0])
+        targets_dic[target.split('/')[-1].split('_')[1].replace('.dm','')].append(scaled[1])
+
+        targetstagex.append(scaled[0]) 
+        targetstagey.append(scaled[1])
+    
+    print('determined gridsquare center using: {0}'.format(GS_centerdata))    
     
     #############
     
