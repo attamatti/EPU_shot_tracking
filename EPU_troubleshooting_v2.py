@@ -254,8 +254,8 @@ for i in selected:
         print('\nFoilhole: {1}\tTargetID {2}\t#CentShots: {3}\t#DA images {4}\tDA files: {5}'.format(GS_name,hole,foilholes[hole][1][0],len(foilholes[hole][0]),ndashots,foilholes[hole][2][0].split('/')[-1].split('.')[0][:39]))
         print('Square center:    2048 2048 {0:.3f} {1:.3f} A/px: {2}'.format(float(sq_cent_x)*1000000,float(sq_cent_y)*1000000,float(sq_apix)*1000000000))
         try:
-            print('target XY:        {0} {1}'.format(foilholes[hole][1][4],foilholes[hole][1][5]))
-            print('target stage pos: {0} {1} {2:.3f} {3:.3f} {4}'.format(int(round(foilholes[hole][1][6],0)),int(round(foilholes[hole][1][7],0)),float(foilholes[hole][1][1])*1000000,float(foilholes[hole][1][2])*1000000,hole.split('/')[-1]))
+            print('target XY:        {0} {1}                 TargetLocation_{2}.dm'.format(foilholes[hole][1][4],foilholes[hole][1][5],hole))
+            print('target stage pos: {0} {1} {2:.3f} {3:.3f} TargetLocation_{4}.dm'.format(int(round(foilholes[hole][1][6],0)),int(round(foilholes[hole][1][7],0)),float(foilholes[hole][1][1])*1000000,float(foilholes[hole][1][2])*1000000,hole.split('/')[-1]))
         except:
             print('No target info    XXXX XXXX')
         #plot the targeting info xys
@@ -316,8 +316,10 @@ for i in selected:
 print('---- now doing the corrected plots ----')
 for i in selected:
     print(i,GS_dic[i][5],len(GS_dic[i][6]))
-
 for i in selected:
+    
+    ## make a dict to translate the DA images to teh correct name
+    # first do the DA images
     GS_name = i.split('/')[-1].split('.')[0]
     DAimglist = []
     allDAimages= glob.glob('{0}Data/*.xml'.format(imagepath,GS_name))
@@ -333,9 +335,13 @@ for i in selected:
         except:
             DA_name_dic[daimg] = DAimglist[n]           # don't know how the last one is handled...
         n+=1
-    
-    for val in DA_name_dic:
-        print(val,DA_name_dic[val])
+
+    # use that same one to make a dict to translate targeting info
+    target_translate = {}
+    for daimg in DA_name_dic:
+        foilholeno = daimg.split('/')[-1].split('_')[1]
+        if foilholeno not in target_translate:                  # only do it once for multiple DA shots/foilhole
+            target_translate[foilholeno] = DA_name_dic[daimg].split('/')[-1].split('_')[1]
     
 
     ##### make a dict of all the requested aquisitions on this gridsquare
@@ -382,6 +388,10 @@ for i in selected:
             foilholes[i].append(['NONE'])
     
     ## output all of the Foilhole info
+    #put the foilholes in order of aquisition
+    holeskeys = list(foilholes)
+    holeskeys.sort(key=lambda x: foilholes[x][1][0])
+    
     for hole in foilholes:        # check for skipped holes
         if foilholes[hole][2][0] == 'NONE':
             ndashots = 0
@@ -391,14 +401,14 @@ for i in selected:
         print('\nFoilhole: {1}\tTargetID {2}\t#CentShots: {3}\t#DA images {4}\tDA files: {5}'.format(GS_name,hole,foilholes[hole][1][0],len(foilholes[hole][0]),ndashots,foilholes[hole][2][0].split('/')[-1].split('.')[0][:39]))
         print('Square center:    2048 2048 {0:.3f} {1:.3f} A/px: {2}'.format(float(sq_cent_x)*1000000,float(sq_cent_y)*1000000,float(sq_apix)*1000000000))
         try:
-            print('target XY:        {0} {1}'.format(foilholes[hole][1][4],foilholes[hole][1][5]))
-            print('target stage pos: {0} {1} {2:.3f} {3:.3f} {4}'.format(int(round(foilholes[hole][1][6],0)),int(round(foilholes[hole][1][7],0)),float(foilholes[hole][1][1])*1000000,float(foilholes[hole][1][2])*1000000,hole.split('/')[-1]))
+            print('target XY:        {0} {1}                 TargetLocation_{2}.dm'.format(foilholes[target_translate[hole]][1][4],foilholes[target_translate[hole]][1][5],target_translate[hole]))
+            print('target stage pos: {0} {1} {2:.3f} {3:.3f} TargetLocation_{4}.dm'.format(int(round(foilholes[target_translate[hole]][1][6],0)),int(round(foilholes[target_translate[hole]][1][7],0)),float(foilholes[target_translate[hole]][1][1])*1000000,float(foilholes[target_translate[hole]][1][2])*1000000,target_translate[hole])) # corrected target
         except:
             print('No target info    XXXX XXXX')
         #plot the targeting info xys
         try:
-            plt.scatter(float(foilholes[hole][1][4]),float(foilholes[hole][1][5]),c='r',s=2,alpha=0.3)
-            plt.text(float(foilholes[hole][1][4]),float(foilholes[hole][1][5]),hole,size=3,color='red')
+            plt.scatter(float(foilholes[target_translate[hole]][1][4]),float(foilholes[target_translate[hole]][1][5]),c='r',s=2,alpha=0.3) #with the correction
+            plt.text(float(foilholes[target_translate[hole]][1][4]),float(foilholes[target_translate[hole]][1][5]),hole,size=3,color='red') #with the correction
         except:
             pass
         
