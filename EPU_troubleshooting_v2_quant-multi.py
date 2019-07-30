@@ -101,7 +101,7 @@ def DA_to_SQ(dax,day,sqx,sqy,sqapix):
     '''transform a DA scale image center to a GS image scale '''
     newx = sqx-dax
     newy = sqy-day
-    return(4096-(2048+(newx/sqapix)),2048+(newy/sqapix)) #why is x flipped???
+    return((2048-(newx/sqapix)),2048+(newy/sqapix))
 
 # get grid square metadata
 print('Finding all gridsquares')
@@ -472,7 +472,6 @@ for i in selected:
     holeskeys.sort(key=lambda x: foilholes[x][1][0])
     
     for hole in foilholes:        # check for skipped holes
-        print foilholes[hole]
         if foilholes[hole][2][0] == 'NONE':
             ndashots = 0
         else:
@@ -481,7 +480,7 @@ for i in selected:
         print('\nFoilhole: {1}\tTargetID {2}\t#CentShots: {3}\t#DA images {4}\tDA files: {5}'.format(GS_name,hole,foilholes[hole][1][0],len(foilholes[hole][0]),ndashots,'_'.join(foilholes[hole][2][0].split('/')[-1].split('.')[0].split('_')[:-3])))
         print('Square center:    2048 2048 {0:.3f} {1:.3f} A/px: {2}'.format(float(sq_cent_x)*1000000,float(sq_cent_y)*1000000,float(sq_apix)*1000000000))
         try:
-            print('target XY:        {0} {1}                 TargetLocation_{2}.dm'.format(foilholes[target_translate[hole]][1][4],foilholes[target_translate[hole]][1][5],target_translate[hole]))
+            print('target XY:        {0} {1}                  TargetLocation_{2}.dm'.format(foilholes[target_translate[hole]][1][4],foilholes[target_translate[hole]][1][5],target_translate[hole]))
             print('target stage pos: {0} {1} {2:.3f} {3:.3f} TargetLocation_{4}.dm'.format(int(round(foilholes[target_translate[hole]][1][6],0)),int(round(foilholes[target_translate[hole]][1][7],0)),float(foilholes[hole][1][1])*1000000,float(foilholes[hole][1][2])*1000000,target_translate[hole])) # corrected target
         except:
             print('No target info    XXXX XXXX')
@@ -497,17 +496,22 @@ for i in selected:
         
         # output - foilhole centering
         connectthedotsx,connectthedotsy=[],[]
+        cents0x,cents0y = [],[]
         n=0
         for citer in reversed(foilholes[hole][0]):
             ABXYZ,acctime,beamshift = parse_xml_image(citer)
             stagexy = DA_to_SQ(float(ABXYZ[2]),float(ABXYZ[3]),sq_cent_x,sq_cent_y,sq_apix)
-            print('iteration {0:02d}:     {1} {2} {6:.3f} {7:.3f} Beamshift x,y ({3},{4}) {5}'.format(n,int(round(stagexy[0],0)),int(round(stagexy[1],0)),beamshift[0],beamshift[1],citer.split('/')[-1],float(ABXYZ[2])*1000000,float(ABXYZ[3])*1000000))
+            print('iteration {0:02d}:     {1} {2} {6:.3f} {7:.3f} {5} Beamshift x,y ({3},{4}) '.format(n,int(round(stagexy[0],0)),int(round(stagexy[1],0)),beamshift[0],beamshift[1],citer.split('/')[-1],float(ABXYZ[2])*1000000,float(ABXYZ[3])*1000000))
             
             # data for graphing
             connectthedotsx.append(float(stagexy[0]))
             connectthedotsy.append(float(stagexy[1]))            
-            centitsx.append(float(stagexy[0]))
-            centitsy.append(float(stagexy[1]))            
+            if n==0:
+                cents0x.append(float(stagexy[0]))
+                cents0y.append(float(stagexy[1]))
+            else:
+                centitsx.append(float(stagexy[0]))
+                centitsy.append(float(stagexy[1]))            
             n+=1
         
         #output - Data-aquisition
@@ -516,7 +520,7 @@ for i in selected:
             for DA in foilholes[hole][2]:
                 ABXYZ,acctime,beamshift = parse_xml_image(DA)
                 stagexy = DA_to_SQ(float(ABXYZ[2]),float(ABXYZ[3]),sq_cent_x,sq_cent_y,sq_apix)
-                print('DA shot:          {0} {1} {5:.3f} {6:.3f} Beamshift x,y ({2},{3}) {4}'.format(int(round(stagexy[0],0)),int(round(stagexy[1],0)),beamshift[0],beamshift[1],DA.split('/')[-1],float(ABXYZ[2])*1000000,float(ABXYZ[3])*1000000))
+                print('DA shot:          {0} {1} {5:.3f} {6:.3f} {4} Beamshift x,y ({2},{3}) '.format(int(round(stagexy[0],0)),int(round(stagexy[1],0)),beamshift[0],beamshift[1],DA.split('/')[-1],float(ABXYZ[2])*1000000,float(ABXYZ[3])*1000000))
                 # data for grahing
                 if done == False:
                     dasx.append(float(stagexy[0]))
@@ -536,6 +540,7 @@ for i in selected:
             plt.text(dasx[0],dasy[0],hole,size=3)
         except:
             pass
+        plt.scatter(cents0x,cents0y,c='green',edgecolor='black',s=4,linewidth=0.5)
         plt.scatter(centitsx,centitsy,c='yellow',edgecolor='black',s=4,linewidth=0.5)
     plt.tight_layout()
     plt.savefig('{0}_shots_corrected.png'.format(GS_name),dpi=400)
