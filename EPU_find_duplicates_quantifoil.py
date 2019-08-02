@@ -9,6 +9,11 @@ import xml.etree.ElementTree as ET
 errormsg = '''
 USAGE: EPU_find_duplicates_quantifoil.py <EPU directory> <hole size (um)> <hole spacing (um)>
 '''
+vers = '0.1'
+
+print('''
+--- EPU duplcate image finder vers {0} ---
+---         Quantifoil version         ---\n'''.format(vers))
 
 def get_dirs(datapath):
     try:
@@ -71,6 +76,8 @@ def pretty_aq_time(t,d):
 try:
     holesize = float(sys.argv[2])
     holespacing = float(sys.argv[3])
+    print('Grid type:               r{0}/{1}'.format(holesize,holespacing))
+    print('Duplicate threshold:     {0} um'.format((0.5*holesize)+holespacing))
 except:
     sys.exit(errormsg)
 
