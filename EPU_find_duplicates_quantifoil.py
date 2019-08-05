@@ -63,7 +63,10 @@ def parse_xml_image(xml_file):
             acctime = i.text
     for i in root.findall(".//{http://schemas.datacontract.org/2004/07/Fei.SharedObjects}BeamShift/"):
         beamshift.append(float(i.text))
-    return(ABXYZ)
+    for i in root.findall(".//{http://schemas.datacontract.org/2004/07/Fei.SharedObjects}BeamDiameter"):
+        illarea = float(i.text)   
+    
+    return(ABXYZ,illarea)
 
 def calc_dist(xy1,xy2):
     xd = abs(xy1[0]-xy2[0])
@@ -76,10 +79,9 @@ def pretty_aq_time(t,d):
 try:
     holesize = float(sys.argv[2])
     holespacing = float(sys.argv[3])
-    print('Grid type:               r{0}/{1}'.format(holesize,holespacing))
-    print('Duplicate threshold:     {0} um'.format((0.5*holesize)+holespacing))
+    mode = 'quant'
 except:
-    sys.exit(errormsg)
+    mode = 'lacy'
 
 selected= []        
 print('Finding all gridsquares')
@@ -90,6 +92,22 @@ for i in GS_metadata:
     GS_data = parse_xml_GS(i)
     if GS_data[4] == 'true':
         selected.append(i.split('/')[-1].replace('.dm',''))
+
+if mode == 'quant':
+    threshold = (0.5*holesize)+holespacing
+    print('Grid type:               Quantifoil r{0}/{1}'.format(holesize,holespacing))
+    print('Duplicate threshold:     {0} um'.format(threshold))
+
+elif mode == 'lacy':
+        GS = selected[0]
+        imagepath = '{0}/{1}/'.format(images,GS)
+        DA_MD= glob.glob('{0}Data/*.xml'.format(imagepath,GS))
+        ABXYZ,illarea = parse_xml_image(DA_MD[0])
+        threshold = 0.33*(illarea*10**6)
+        print('Grid type:               Lacy carbon')
+        print('Illuminated area:        {0} um'.format(illarea*(10**6)))
+        print('Duplicate threshold:     {0} um'.format(threshold))
+
 print('Found {0} selected gridsquares to process'.format(len(selected)))
 
 for GS in selected:
@@ -105,7 +123,7 @@ for GS in selected:
                 except:
                     foilholes[FHid] = [[f]]
     for hole in foilholes:
-        ABXYZ = parse_xml_image(foilholes[hole][0][0])
+        ABXYZ,illarea = parse_xml_image(foilholes[hole][0][0])
         foilholes[hole].append([float(ABXYZ[2])*(10**6),float(ABXYZ[3])*(10**6)])
     
     bins = [0,0.25,0.50,1,1.1]
@@ -114,6 +132,7 @@ for GS in selected:
     sys.stdout.write(GS)
     sys.stdout.flush()
     hits = []
+    
     if len(foilholes) == 0:
         sys.stdout.write(' - no data aquisition images for this square\n')
         sys.stdout.flush()
@@ -122,7 +141,7 @@ for GS in selected:
             for hole2 in foilholes:
                 if hole != hole2:
                     dif = calc_dist(foilholes[hole][1],foilholes[hole2][1])
-                    if dif < (0.5*holesize)+holespacing and [hole2,hole,dif] not in hits:
+                    if dif < threshold and [hole2,hole,dif] not in hits:
                         hits.append([hole,hole2,dif])
                     while float(n)/(len(foilholes)**2) > bins[binn]:
                         sys.stdout.write('.....'.format(binn))
