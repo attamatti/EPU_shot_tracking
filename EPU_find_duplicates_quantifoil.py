@@ -10,7 +10,7 @@ errormsg = '''
 USAGE: EPU_find_duplicates_quantifoil.py <EPU directory> <hole size (um)> <hole spacing (um)>
 
 **   if hole size and spacing are left blank the grid is assumed to be lacy carbon   ** 
-**     carbon and the threshold used will be 1/3 overlap of the illuminated area     **
+**     carbon and the threshold used will be >1/3 overlap of the illuminated area    **
 '''
 vers = '0.1'
 
