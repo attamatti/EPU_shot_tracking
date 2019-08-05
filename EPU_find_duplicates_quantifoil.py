@@ -10,7 +10,7 @@ errormsg = '''
 USAGE: EPU_find_duplicates_quantifoil.py <EPU directory> <hole size (um)> <hole spacing (um)>
 
 **   if hole size and spacing are left blank the grid is assumed to be lacy carbon   ** 
-**     carbon and the threshold used will be >1/3 overlap of the illuminated area    **
+**     carbon and the threshold used will be >1/2 overlap of the illuminated area    **
 '''
 vers = '0.1'
 
@@ -108,7 +108,7 @@ elif mode == 'lacy':
         imagepath = '{0}/{1}/'.format(images,GS)
         DA_MD= glob.glob('{0}Data/*.xml'.format(imagepath,GS))
         ABXYZ,illarea = parse_xml_image(DA_MD[0])
-        threshold = 0.33*(illarea*10**6)
+        threshold = 0.5*(illarea*10**6)
         print('Grid type:               Lacy carbon')
         print('Illuminated area:        {0} um'.format(illarea*(10**6)))
         print('Duplicate threshold:     {0} um\n'.format(threshold))
