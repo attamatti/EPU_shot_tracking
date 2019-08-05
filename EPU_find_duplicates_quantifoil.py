@@ -8,12 +8,14 @@ import xml.etree.ElementTree as ET
 
 errormsg = '''
 USAGE: EPU_find_duplicates_quantifoil.py <EPU directory> <hole size (um)> <hole spacing (um)>
+
+**   if hole size and spacing are left blank the grid is assumed to be lacy carbon   ** 
+**     carbon and the threshold used will be 1/3 overlap of the illuminated area     **
 '''
 vers = '0.1'
 
 print('''
---- EPU duplcate image finder vers {0} ---
----         Quantifoil version         ---\n'''.format(vers))
+--- EPU duplcate image finder vers {0} ---\n'''.format(vers))
 
 def get_dirs(datapath):
     try:
@@ -48,8 +50,8 @@ def parse_xml_GS(xml_file):
 
 def get_files(dirpath,ext):
     files = glob.glob('{0}/{1}'.format(dirpath,ext))
-    print('targeting metadata : {0}/{1}'.format(dirpath,ext))
-    print('{0} files/dirs found'.format(len(files)))
+    #print('targeting metadata : {0}/{1}'.format(dirpath,ext))
+    #print('{0} files/dirs found'.format(len(files)))
     return(files)
     
 def parse_xml_image(xml_file):
@@ -71,7 +73,7 @@ def parse_xml_image(xml_file):
 def calc_dist(xy1,xy2):
     xd = abs(xy1[0]-xy2[0])
     yd = abs(xy1[1]-xy2[1])
-    return(xd+yd)
+    return([xd,yd])
 
 def pretty_aq_time(t,d):
     return('{0}-{1}-{2} {3}:{4}:{5}'.format(d[0:3],d[4:6],d[6:],t[0:2],t[2:4],t[4:],))
@@ -83,9 +85,12 @@ try:
 except:
     mode = 'lacy'
 
-selected= []        
-print('Finding all gridsquares')
-metadata,images = get_dirs(sys.argv[1])
+selected= []
+try:
+    metadata,images = get_dirs(sys.argv[1])
+except:
+    print('no metadata files found')
+    sys.exit(errormsg)
 GS_metadata= get_files(metadata,'*.dm')
 
 for i in GS_metadata:
@@ -96,7 +101,7 @@ for i in GS_metadata:
 if mode == 'quant':
     threshold = (0.5*holesize)+holespacing
     print('Grid type:               Quantifoil r{0}/{1}'.format(holesize,holespacing))
-    print('Duplicate threshold:     {0} um'.format(threshold))
+    print('Duplicate threshold:     {0} um\n'.format(threshold))
 
 elif mode == 'lacy':
         GS = selected[0]
@@ -106,7 +111,7 @@ elif mode == 'lacy':
         threshold = 0.33*(illarea*10**6)
         print('Grid type:               Lacy carbon')
         print('Illuminated area:        {0} um'.format(illarea*(10**6)))
-        print('Duplicate threshold:     {0} um'.format(threshold))
+        print('Duplicate threshold:     {0} um\n'.format(threshold))
 
 print('Found {0} selected gridsquares to process'.format(len(selected)))
 
@@ -141,8 +146,8 @@ for GS in selected:
             for hole2 in foilholes:
                 if hole != hole2:
                     dif = calc_dist(foilholes[hole][1],foilholes[hole2][1])
-                    if dif < threshold and [hole2,hole,dif] not in hits:
-                        hits.append([hole,hole2,dif])
+                    if dif[0] < threshold and dif[1] < threshold and [hole2,hole,dif] not in hits:
+                        hits.append([hole,hole2,dif,foilholes[hole][1],foilholes[hole2][1]])
                     while float(n)/(len(foilholes)**2) > bins[binn]:
                         sys.stdout.write('.....'.format(binn))
                         sys.stdout.flush()
@@ -156,6 +161,7 @@ for GS in selected:
             d1 = foilholes[hit[0]][0][0].split('/')[-1].split('_')[-2]
             t2 = foilholes[hit[1]][0][0].split('/')[-1].split('_')[-1].replace('.xml','')
             d2 = foilholes[hit[1]][0][0].split('/')[-1].split('_')[-2]
-            print('{0}   aquisition time: {1}'.format('_'.join(foilholes[hit[0]][0][0].split('/')[-1].split('_')[:3]),pretty_aq_time(t1,d1)))
-            print('{0}   aquisition time: {1}'.format('_'.join(foilholes[hit[1]][0][0].split('/')[-1].split('_')[:3]),pretty_aq_time(t2,d2)))
+            print('{0}   aquisition time: {1} stage position: {2:.5f} {3:.5f}'.format('_'.join(foilholes[hit[0]][0][0].split('/')[-1].split('_')[:3]),pretty_aq_time(t1,d1),hit[3][0],hit[3][1]))
+            print('{0}   aquisition time: {1} stage position: {2:.5f} {3:.5f}'.format('_'.join(foilholes[hit[1]][0][0].split('/')[-1].split('_')[:3]),pretty_aq_time(t2,d2),hit[4][0],hit[4][1]))
+            print('Delta x: {0} Delta y: {1}'.format(hit[2][0],hit[2][1]))
             print('--')
