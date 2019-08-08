@@ -34,11 +34,11 @@ try:
     duplist = open('duplicate_shots.txt','r').readlines()
     print('{0} duplicate foilholes found'.format(len(duplist)))
 except:
-    print("ERROR: couldn't find duplicate_shots.txt file")
+   sys.exit("ERROR: couldn't find duplicate_shots.txt file")
 try:
     labels,header,data = read_starfile_new(sys.argv[1])
 except:
-    print("ERROR: couldn't parse micrographs star file\nUSAGE: ./clean_duplicates <microraphs ctf file>")
+    sys.exit("ERROR: couldn't parse micrographs star file\nUSAGE: ./clean_duplicates <micrographs ctf file>")
 
 dupdic = {}         #{micname: [duplicate1, duplicate2, ..., duplicaten]}
 for i in duplist:
