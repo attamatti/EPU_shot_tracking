@@ -4,7 +4,7 @@
 # get reported DF
 
 import sys
-
+import numpy as np
 ###---------function: read the star file get the header, labels, and data -------------#######
 def read_starfile_new(f):
     inhead = True
@@ -42,11 +42,29 @@ def parse_starfile(starfile):
             micrographs[micname] = [1,defocus]
     return(micrographs)
 
-reconstruction = (parse_starfile(sys.argv[1]))
-initial = (parse_starfile(sys.argv[2]))
+errormsg = './usage compare_recon_vs_extract <reconstrction data starfile> <original particles starfile>'
 
+try:
+    reconstruction = (parse_starfile(sys.argv[1]))
+    initial = (parse_starfile(sys.argv[2]))
+except:
+    sys.exit(errormsg)
+
+print('Raw dataset:     {0}'.format(len(initial)))
+print('Reconstruction:  {0}'.format(len(reconstruction)))
+
+ratios = []
+icounts = []
+fcounts = []
 for i in initial:
     try:
         print(i,initial[i][0],reconstruction[i][0],float(reconstruction[i][0])/float(initial[i][0]))
+        ratios.append(float(reconstruction[i][0])/float(initial[i][0]))
+        icounts.append(initial[i][0])
+        fcounts.append(reconstruction[i][0])
     except:
         pass
+print('-- means -- ')
+print('parts/micrograph initial: {0}'.format(np.mean(icounts)))
+print('parts/micrograph final:   {0}'.format(np.mean(fcounts)))
+print('% particles used per micrograph:  {0}'.format(np.mean(ratios)))
