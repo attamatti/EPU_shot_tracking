@@ -32,7 +32,7 @@ def read_starfile_new(f):
 def parse_starfile(starfile):
     '''for each micrograph [count,defocus]'''
     (labels,header,data) = read_starfile_new(starfile)
-    micrographs = {}
+    micrographs = {}                #{micrographname: [nparts,defocus,[loglikelyhood values],[maxvalueprobdist values]]}
     for i in data:
         micname = i[labels['_rlnMicrographName']].split('/')[-1]
         try:
@@ -40,6 +40,15 @@ def parse_starfile(starfile):
         except:
             defocus = (float(i[labels['_rlnDefocusU']])+float(i[labels['_rlnDefocusV']]))/2
             micrographs[micname] = [1,defocus]
+        if '_rlnLogLikeliContribution' in labels:
+            try:
+                micrographs[micname][2].append(float(i[labels['_rlnLogLikeliContribution']]))
+            except:
+                micrographs[micname].append([float(i[labels['_rlnLogLikeliContribution']])])
+            try:
+                micrographs[micname][3].append(float(i[labels['_rlnMaxValueProbDistribution']]))
+            except:
+                micrographs[micname].append([float(i[labels['_rlnMaxValueProbDistribution']])])
     return(micrographs)
 
 errormsg = './usage compare_recon_vs_extract <reconstrction data starfile> <original particles starfile>'
@@ -58,7 +67,7 @@ icounts = []
 fcounts = []
 for i in initial:
     try:
-        print(i,initial[i][0],reconstruction[i][0],float(reconstruction[i][0])/float(initial[i][0]))
+        print(i,initial[i][0],reconstruction[i][0],float(reconstruction[i][0])/float(initial[i][0]),np.mean(reconstruction[i][2]),np.mean(reconstruction[i][3]))
         ratios.append(float(reconstruction[i][0])/float(initial[i][0]))
         icounts.append(initial[i][0])
         fcounts.append(reconstruction[i][0])
