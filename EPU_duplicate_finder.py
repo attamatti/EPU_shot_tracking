@@ -171,3 +171,4 @@ if len(finalhits) > 0:
     output = open('duplicate_shots.txt','w')
     for i in finalhits:
         output.write('{0}\n'.format(i))
+    print('wrote duplicate_shots.txt - run clean_duplicates.py on the microghraphs_ctf.star file to remove duplicates')
