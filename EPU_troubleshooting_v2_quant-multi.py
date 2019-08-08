@@ -6,7 +6,6 @@ import mrcfile
 import glob
 import xml.etree.ElementTree as ET
 import os
-import numpy as np
 
 def get_dirs(datapath):
     try:
@@ -157,6 +156,7 @@ for i in selected:
     for n in range(len(targetsx)):
         plt.text(targetsx[n],targetsy[n],targetsorder[n],size=3)
     
+
     # map out the stage positions for the targets using the mrc headers for the actual images
     gsx,gsy = (float(GS_dic[i][2]),float(GS_dic[i][3]))
     print('gridsquare centre check \nmetadata:\t{0:.7f}\t{1:.7f}\nmrc header:\t{2:.7f}\t{3:.7f}'.format(gsx*1000,gsy*1000,sq_cent_x*1000,sq_cent_y*1000))
@@ -201,26 +201,11 @@ for i in selected:
     plt.tight_layout()
     plt.savefig('target_locations_{0}.png'.format(GS_name.split('/')[-1].split('.')[0]),dpi=400)
     plt.close()
-    
- 
-    print('-- Magnification Calibration --')
-    targetsx.sort()
-    targetstagex.sort()
-    plt.plot(targetsx,targetstagex)
-    m,b = np.polyfit(targetsx,targetstagex,1)
-    print(m,b)
-    plt.savefig('mag_calibration_{0}.png'.format(GS_name.split('/')[-1].split('.')[0]),dpi=400)
-    print('Nominal magnification: {0}'.format(sq_apix))
-    print('Calc magnification:    {0}'.format(sq_apix/m))
-    plt.close()
-    
-    
-    
-    
+
     ##### make a dict of all the requested aquisitions on this gridsquare
     ## initilize the next plot
     sq_cent_x,sq_cent_y,sq_z,sq_apix = make_bg(GS_image)
-    sq_apix = sq_apix/m
+
     
     ## get the foilhole metadata files:
     print('FoilHoles metadata: {0}/FoilHoles/*.xml'.format(imagepath,GS_name))
@@ -381,7 +366,7 @@ for i in selected:
     GS_image = GS_images[-1]
     print('{0} gridsquare images found :: using {1}'.format(len(GS_images),GS_image.split('/')[-1]))
     sq_cent_x,sq_cent_y,sq_z,sq_apix = make_bg(GS_image)
-    sq_apix=sq_apix/m
+    
     ###### make a new targets dict
     tmd_dir = '{0}/{1}'.format(metadata,GS_name)
     target_metadata = get_files(tmd_dir,'*.dm')
