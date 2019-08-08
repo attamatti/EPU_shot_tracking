@@ -115,6 +115,7 @@ elif mode == 'lacy':
 
 print('Found {0} selected gridsquares to process'.format(len(selected)))
 
+finalhits = []
 for GS in selected:
     imagepath = '{0}/{1}/'.format(images,GS)
     DA_MD= glob.glob('{0}Data/*.xml'.format(imagepath,GS))
@@ -161,7 +162,12 @@ for GS in selected:
             d1 = foilholes[hit[0]][0][0].split('/')[-1].split('_')[-2]
             t2 = foilholes[hit[1]][0][0].split('/')[-1].split('_')[-1].replace('.xml','')
             d2 = foilholes[hit[1]][0][0].split('/')[-1].split('_')[-2]
-            print('{0}   aquisition time: {1} stage position: {2:.5f} {3:.5f}'.format('_'.join(foilholes[hit[0]][0][0].split('/')[-1].split('_')[:3]),pretty_aq_time(t1,d1),hit[3][0],hit[3][1]))
-            print('{0}   aquisition time: {1} stage position: {2:.5f} {3:.5f}'.format('_'.join(foilholes[hit[1]][0][0].split('/')[-1].split('_')[:3]),pretty_aq_time(t2,d2),hit[4][0],hit[4][1]))
+            print('{0}   aquisition time: {1} stage position: {2:.5f} {3:.5f}'.format('_'.join(foilholes[hit[0]][0][0].split('/')[-1].split('_')[:2]),pretty_aq_time(t1,d1),hit[3][0],hit[3][1]))
+            print('{0}   aquisition time: {1} stage position: {2:.5f} {3:.5f}'.format('_'.join(foilholes[hit[1]][0][0].split('/')[-1].split('_')[:2]),pretty_aq_time(t2,d2),hit[4][0],hit[4][1]))
             print('Delta x: {0} Delta y: {1}'.format(hit[2][0],hit[2][1]))
             print('--')
+            finalhits.append('{0} {1}'.format('_'.join(foilholes[hit[0]][0][0].split('/')[-1].split('_')[:2]),'_'.join(foilholes[hit[1]][0][0].split('/')[-1].split('_')[:2])))
+if len(finalhits) > 0:
+    output = open('duplicate_shots.txt','w')
+    for i in finalhits:
+        output.write('{0}\n'.format(i))
