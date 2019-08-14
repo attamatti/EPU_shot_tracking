@@ -2,10 +2,6 @@
 
 # compare CTF values from gCTF to microscope values
 #
-#
-#
-#
-
 
 import sys
 import mrcfile
